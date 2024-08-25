@@ -11,11 +11,22 @@ export default function Dashboard() {
   const [generatedCount, setGeneratedCount] = useState(0);
 
   useEffect(() => {
-    // Fetch saved flashcards from localStorage
-    const savedFlashcards = JSON.parse(localStorage.getItem('savedFlashcards')) || [];
+    // Fetch saved folders and flashcards from localStorage
+    const savedFolders = JSON.parse(localStorage.getItem('folders')) || {};
+
+    // Convert savedFolders object to an array of folder data
+    const savedFlashcards = Object.keys(savedFolders).map(folder => ({
+      folderName: folder,
+      flashcards: savedFolders[folder]
+    }));
+
     setFlashcards(savedFlashcards);
-    setGeneratedCount(savedFlashcards.length);
+    setGeneratedCount(savedFlashcards.reduce((acc, set) => acc + set.flashcards.length, 0));
   }, []);
+
+  const handleFolderClick = (folderName) => {
+    router.push(`/folder/${encodeURIComponent(folderName)}`);
+  };
 
   return (
     <>
@@ -44,9 +55,16 @@ export default function Dashboard() {
             <Card sx={{ backgroundColor: '#1a1a1a', color: '#fff', borderRadius: 2, boxShadow: 3 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>View Saved Flashcards</Typography>
-                <Typography variant="body2">
-                  Group related flashcards into one place for better organization.
-                </Typography>
+                {flashcards.length === 0 ? (
+                  <Typography variant="body2">There are no flashcard sets yet.</Typography>
+                ) : (
+                  flashcards.map((set, index) => (
+                    <Box key={index} sx={{ my: 2, cursor: 'pointer' }} onClick={() => handleFolderClick(set.folderName)}>
+                      <Typography variant="h6">{set.folderName}</Typography>
+                      <Typography variant="body2">{`${set.flashcards.length} flashcards`}</Typography>
+                    </Box>
+                  ))
+                )}
                 <Button variant="contained" sx={{ mt: 2, backgroundColor: '#ff0077', color: 'white', '&:hover': { backgroundColor: '#e6006e' } }}>
                   Create New Group
                 </Button>
@@ -74,10 +92,10 @@ export default function Dashboard() {
                   <Typography variant="body2">There are no flashcard sets yet.</Typography>
                 ) : (
                   flashcards.slice(-3).map((set, index) => (
-                    <Box key={index} sx={{ my: 2 }}>
-                      <Chip label={`Flashcard Set ${index + 1}`} color="primary" />
+                    <Box key={index} sx={{ my: 2, cursor: 'pointer' }} onClick={() => handleFolderClick(set.folderName)}>
+                      <Chip label={set.folderName} color="primary" />
                       <Typography variant="body2" sx={{ mt: 1 }}>
-                        {set.length} flashcards
+                        {set.flashcards.length} flashcards
                       </Typography>
                     </Box>
                   ))
@@ -96,25 +114,6 @@ export default function Dashboard() {
                 <Typography variant="h6" gutterBottom>Completed Flashcards</Typography>
                 <Typography variant="h4" sx={{ color: '#ff00cc' }}>0</Typography>
                 <Typography variant="body2">You need to do better!</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Your Flashcards */}
-          <Grid item xs={12} md={12}>
-            <Card sx={{ backgroundColor: '#1a1a1a', color: '#fff', borderRadius: 2, boxShadow: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>Your Flashcards</Typography>
-                <Button variant="contained" sx={{ mt: 2, backgroundColor: '#ff0077', color: 'white', '&:hover': { backgroundColor: '#e6006e' } }}>
-                  + Add New
-                </Button>
-                {flashcards.map((set, index) => (
-                  <Box key={index} sx={{ my: 2 }}>
-                    <Typography variant="h6">{`Flashcard Set ${index + 1}`}</Typography>
-                    <Typography variant="body2">{`Date: ${new Date().toLocaleDateString()}`}</Typography>
-                    <Chip label="in progress" color="warning" />
-                  </Box>
-                ))}
               </CardContent>
             </Card>
           </Grid>
