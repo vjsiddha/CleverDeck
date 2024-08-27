@@ -2,25 +2,37 @@
 
 import React, { useState, useEffect } from 'react';
 import { Container, Box, Typography, Grid, Card, CardContent, AppBar, Toolbar, Button } from '@mui/material';
-import { useRouter } from 'next/navigation';
-import { useParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { SignedIn, UserButton } from '@clerk/nextjs';
 
 export default function FolderPage() {
   const router = useRouter();
-  const { folderName } = useParams();  // Get the folder name from the URL
+  const { folderName } = useParams();
   const [flashcards, setFlashcards] = useState([]);
+  const [isClient, setIsClient] = useState(false);
+
+  // Ensure this code runs only on the client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
-    // Fetch the flashcards for the specific folder from localStorage
-    const savedFolders = JSON.parse(localStorage.getItem('folders')) || {};
-    const flashcardsInFolder = savedFolders[folderName] || [];
-    setFlashcards(flashcardsInFolder);
-  }, [folderName]);
+    if (isClient) {
+      console.log("Fetching flashcards for folder:", folderName);
+      const savedFolders = JSON.parse(localStorage.getItem('folders')) || {};
+      console.log("Saved folders in localStorage:", savedFolders);
+      const flashcardsInFolder = savedFolders[folderName] || [];
+      console.log("Flashcards in this folder:", flashcardsInFolder);
+      setFlashcards(flashcardsInFolder);
+    }
+  }, [folderName, isClient]);
+
+  if (!isClient) {
+    return null; // Avoid rendering until we're on the client
+  }
 
   return (
     <>
-      {/* Fixed Header with Title on the Left and Dashboard on the Right */}
       <AppBar position="fixed" sx={{ background: 'black' }}>
         <Toolbar>
           <Typography variant="h6" style={{ flexGrow: 1, cursor: 'pointer' }} onClick={() => router.push('/dashboard')}>
@@ -35,7 +47,6 @@ export default function FolderPage() {
         </Toolbar>
       </AppBar>
 
-      {/* Adding padding to prevent content from being hidden behind the AppBar */}
       <Toolbar />
 
       <Container maxWidth="md" sx={{ mt: 4 }}>
@@ -49,7 +60,17 @@ export default function FolderPage() {
             <Grid container spacing={2}>
               {flashcards.map((flashcard, index) => (
                 <Grid item xs={12} sm={6} md={4} key={index}>
-                  <Card sx={{ backgroundColor: '#333399', color: 'white', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 2 }}>
+                  <Card
+                    sx={{ 
+                      backgroundColor: '#333399', 
+                      color: 'white', 
+                      height: '100%', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      padding: 2 
+                    }}
+                  >
                     <CardContent>
                       <Typography variant="h6" gutterBottom>Question:</Typography>
                       <Typography variant="body1">{flashcard.front}</Typography>
