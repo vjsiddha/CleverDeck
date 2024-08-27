@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Container, Box, Typography, TextField, Button, Grid, Card, Dialog, DialogActions, DialogContent, DialogTitle, Select, MenuItem } from '@mui/material';
+import { Container, Box, Typography, TextField, Button, Grid, Card, Dialog, DialogActions, DialogContent, DialogTitle, Select, MenuItem, LinearProgress } from '@mui/material';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import { useRouter } from 'next/navigation';
@@ -10,30 +10,39 @@ import { SignedIn, UserButton } from '@clerk/nextjs';
 export default function Generate() {
   const [text, setText] = useState('');
   const [flashcards, setFlashcards] = useState([]);
+  const [reviewSheet, setReviewSheet] = useState('');
   const [flipped, setFlipped] = useState({});
   const [open, setOpen] = useState(false);
   const [folderName, setFolderName] = useState('');
   const [selectedFolder, setSelectedFolder] = useState('');
   const [folders, setFolders] = useState([]);
+  const [reviewFolders, setReviewFolders] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const router = useRouter();
 
   useEffect(() => {
-    // This will run on the client side
     const storedFolders = JSON.parse(localStorage.getItem('folders')) || {};
+    const storedReviewFolders = JSON.parse(localStorage.getItem('reviewSheets')) || {};
     setFolders(storedFolders);
+    setReviewFolders(storedReviewFolders);
   }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (generateReviewSheet = false) => {
     if (!text.trim()) {
       alert('Please enter some text to generate flashcards.');
       return;
     }
 
     try {
+      setLoading(true);
       const response = await fetch('/api/generate', {
         method: 'POST',
-        body: text,
+        body: JSON.stringify({ text, generateReviewSheet }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!response.ok) {
@@ -41,11 +50,18 @@ export default function Generate() {
       }
 
       const data = await response.json();
-      setFlashcards(data);
+      setFlashcards(data.flashcards);
+
+      if (generateReviewSheet) {
+        setReviewSheet(data.reviewSheet);
+      }
+
       setFlipped({});
     } catch (error) {
       console.error('Error generating flashcards:', error);
-      alert('An error occurred while generating flashcards. Please try again.');
+      setError('An error occurred while generating flashcards. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,22 +81,30 @@ export default function Generate() {
 
     const folder = folderName || selectedFolder;
     let updatedFolders = JSON.parse(localStorage.getItem('folders')) || {};
+    let updatedReviewFolders = JSON.parse(localStorage.getItem('reviewSheets')) || {};
 
-    // Check if the folder already exists
-    if (!updatedFolders[folder]) {
-      updatedFolders[folder] = []; // Create the folder if it doesn't exist
+    // Save flashcards
+    if (flashcards.length > 0) {
+      if (!updatedFolders[folder]) {
+        updatedFolders[folder] = [];
+      }
+      updatedFolders[folder] = [...updatedFolders[folder], ...flashcards];
+      localStorage.setItem('folders', JSON.stringify(updatedFolders));
+      setFolders(updatedFolders);
     }
 
-    // Add the flashcards to the folder
-    updatedFolders[folder] = [...updatedFolders[folder], ...flashcards];
+    // Save review sheet
+    if (reviewSheet) {
+      if (!updatedReviewFolders[folder]) {
+        updatedReviewFolders[folder] = [];
+      }
+      updatedReviewFolders[folder] = [...updatedReviewFolders[folder], reviewSheet];
+      localStorage.setItem('reviewSheets', JSON.stringify(updatedReviewFolders));
+      setReviewFolders(updatedReviewFolders);
+    }
 
-    // Save the updated folders back to local storage
-    localStorage.setItem('folders', JSON.stringify(updatedFolders));
-    
-    // Update the state to reflect the changes
-    setFolders(updatedFolders);
     setOpen(false);
-    alert('Flashcards saved successfully!');
+    alert('Saved successfully!');
   };
 
   return (
@@ -99,7 +123,6 @@ export default function Generate() {
         </Toolbar>
       </AppBar>
 
-      {/* Adding padding to prevent content from being hidden behind the AppBar */}
       <Toolbar />
 
       <Container maxWidth="md" sx={{ mt: 4 }}>
@@ -148,12 +171,29 @@ export default function Generate() {
           <Button 
             variant="contained" 
             sx={{ mt: 3, backgroundColor: '#ff0077', '&:hover': { backgroundColor: '#e6006e' }, color: '#fff' }} 
-            onClick={handleSubmit}
+            onClick={() => handleSubmit(false)}
             size="large"
+            disabled={loading}
           >
             GENERATE FLASHCARDS
           </Button>
+          <Button 
+            variant="contained" 
+            sx={{ mt: 2, backgroundColor: '#0077ff', '&:hover': { backgroundColor: '#0066e6' }, color: '#fff' }} 
+            onClick={() => handleSubmit(true)}
+            size="large"
+            disabled={loading}
+          >
+            GENERATE FLASHCARDS AND TOPIC REVIEW
+          </Button>
+          {loading && <LinearProgress sx={{ mt: 2 }} />}
         </Box>
+
+        {error && (
+          <Typography color="error" variant="body1" sx={{ mb: 4, textAlign: 'center' }}>
+            {error}
+          </Typography>
+        )}
 
         {flashcards.length > 0 && (
           <>
@@ -169,12 +209,12 @@ export default function Generate() {
                       transition: 'transform 0.6s', 
                       height: 'auto', 
                       perspective: '1000px',
-                      padding: '20px', // Increase padding for better spacing
+                      padding: '20px', 
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       minHeight: '150px',
-                      boxSizing: 'border-box' // Ensure padding is included in the element's dimensions
+                      boxSizing: 'border-box' 
                     }} 
                     onClick={() => handleCardClick(index)}
                   >
@@ -199,7 +239,7 @@ export default function Generate() {
                           justifyContent: 'center',
                           backgroundColor: '#800080',
                           color: 'white',
-                          padding: '10px 15px', // Ensure padding on all sides
+                          padding: '10px 15px', 
                           boxSizing: 'border-box',
                           wordWrap: 'break-word',
                         }}
@@ -219,7 +259,7 @@ export default function Generate() {
                           justifyContent: 'center',
                           backgroundColor: '#800080',
                           color: 'white',
-                          padding: '10px 15px', // Ensure padding on all sides
+                          padding: '10px 15px', 
                           boxSizing: 'border-box',
                           transform: 'rotateY(180deg)',
                           wordWrap: 'break-word',
@@ -255,8 +295,37 @@ export default function Generate() {
           </>
         )}
 
+        {reviewSheet && (
+          <Box sx={{ mt: 4 }}>
+            <Typography variant="h4" component="h2" gutterBottom>
+              Practice Sheet
+            </Typography>
+            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+              {reviewSheet}
+            </Typography>
+            <Button
+              variant="contained"
+              sx={{ 
+                mt: 3, 
+                backgroundColor: '#0077ff', 
+                '&:hover': { backgroundColor: '#0066e6' }, 
+                color: '#fff',
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                mx: 'auto', 
+                width: 'fit-content' 
+              }}
+              onClick={handleSave}
+              size="large"
+            >
+              SAVE REVIEW SHEET
+            </Button>
+          </Box>
+        )}
+
         <Dialog open={open} onClose={() => setOpen(false)}>
-          <DialogTitle>Save Flashcards</DialogTitle>
+          <DialogTitle>Save Flashcards/Review Sheet</DialogTitle>
           <DialogContent>
             <Typography>Choose a folder or create a new one:</Typography>
             <Select
@@ -272,6 +341,11 @@ export default function Generate() {
                   {folder}
                 </MenuItem>
               ))}
+              {Object.keys(reviewFolders).map((folder, index) => (
+                <MenuItem key={index} value={folder}>
+                  {folder} (Review Sheet)
+                </MenuItem>
+              ))}
             </Select>
             <TextField
               fullWidth
@@ -282,7 +356,7 @@ export default function Generate() {
             />
           </DialogContent>
           <DialogActions>
-          <Button onClick={() => setOpen(false)} color="secondary">
+            <Button onClick={() => setOpen(false)} color="secondary">
               Cancel
             </Button>
             <Button onClick={handleSaveToFolder} color="primary">

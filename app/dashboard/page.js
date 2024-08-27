@@ -9,17 +9,26 @@ export default function Dashboard() {
   const router = useRouter();
   const [flashcards, setFlashcards] = useState([]);
   const [folders, setFolders] = useState({});
+  const [reviewSheets, setReviewSheets] = useState({});
   const [selectedFolder, setSelectedFolder] = useState(null);
+  const [selectedReviewSheet, setSelectedReviewSheet] = useState(null);
 
   useEffect(() => {
-    // Fetch saved folders and flashcards from localStorage
     const savedFolders = JSON.parse(localStorage.getItem('folders')) || {};
+    const savedReviewSheets = JSON.parse(localStorage.getItem('reviewSheets')) || {};
     setFolders(savedFolders);
+    setReviewSheets(savedReviewSheets);
   }, []);
 
   const handleFolderClick = (folderName) => {
     setSelectedFolder(folderName);
     setFlashcards(folders[folderName]);
+    setSelectedReviewSheet(null);
+  };
+
+  const handleReviewSheetClick = (sheetName) => {
+    setSelectedReviewSheet(sheetName);
+    setSelectedFolder(null);
   };
 
   return (
@@ -43,7 +52,7 @@ export default function Dashboard() {
       <Container maxWidth="lg" sx={{ mt: 4 }}>
         <Grid container spacing={4}>
           {/* View Saved Flashcards */}
-          <Grid item xs={12} md={8}>
+          <Grid item xs={12} md={6}>
             <Card sx={{ backgroundColor: '#1a1a1a', color: '#fff', borderRadius: 2, boxShadow: 3 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>View Saved Flashcards</Typography>
@@ -96,8 +105,43 @@ export default function Dashboard() {
             </Card>
           </Grid>
 
+          {/* View Saved Review Sheets */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ backgroundColor: '#1a1a1a', color: '#fff', borderRadius: 2, boxShadow: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>View Saved Review Sheets</Typography>
+                {Object.keys(reviewSheets).length === 0 ? (
+                  <Typography variant="body2">There are no review sheets yet.</Typography>
+                ) : (
+                  <>
+                    <List>
+                      {Object.keys(reviewSheets).map((sheetName) => (
+                        <ListItem button key={sheetName} onClick={() => handleReviewSheetClick(sheetName)}>
+                          <ListItemText primary={sheetName} />
+                        </ListItem>
+                      ))}
+                    </List>
+                    {selectedReviewSheet && (
+                      <>
+                        <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>
+                          Review Sheet: "{selectedReviewSheet}"
+                        </Typography>
+                        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                          {reviewSheets[selectedReviewSheet]}
+                        </Typography>
+                      </>
+                    )}
+                  </>
+                )}
+                <Button variant="contained" sx={{ mt: 2, backgroundColor: '#ff0077', color: 'white', '&:hover': { backgroundColor: '#e6006e' } }}>
+                  Create New Review Sheet
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+
           {/* Generated Flashcards */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={6}>
             <Card sx={{ backgroundColor: '#1a1a1a', color: '#fff', borderRadius: 2, boxShadow: 3, height: '100%' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>Generated Flashcards</Typography>
@@ -107,30 +151,8 @@ export default function Dashboard() {
             </Card>
           </Grid>
 
-          {/* Recent Flashcards */}
-          <Grid item xs={12} md={8}>
-            <Card sx={{ backgroundColor: '#1a1a1a', color: '#fff', borderRadius: 2, boxShadow: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>Recent Flashcards</Typography>
-                {Object.keys(folders).length === 0 ? (
-                  <Typography variant="body2">There are no flashcard sets yet.</Typography>
-                ) : (
-                  Object.keys(folders).slice(-3).map((folderName) => (
-                    <Box key={folderName} sx={{ my: 2, cursor: 'pointer' }} onClick={() => handleFolderClick(folderName)}>
-                      <Typography variant="h6">{folderName}</Typography>
-                      <Typography variant="body2">{`${folders[folderName].length} flashcards`}</Typography>
-                    </Box>
-                  ))
-                )}
-                <Button variant="contained" sx={{ mt: 2, backgroundColor: '#ff0077', color: 'white', '&:hover': { backgroundColor: '#e6006e' } }}>
-                  Create a Group
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-
           {/* Completed Flashcards */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={6}>
             <Card sx={{ backgroundColor: '#1a1a1a', color: '#fff', borderRadius: 2, boxShadow: 3, height: '100%' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>Completed Flashcards</Typography>
@@ -139,7 +161,6 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </Grid>
-
         </Grid>
       </Container>
     </>
