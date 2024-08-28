@@ -168,24 +168,36 @@ export default function Generate() {
               },
             }}
           />
-          <Button 
-            variant="contained" 
-            sx={{ mt: 3, backgroundColor: '#ff0077', '&:hover': { backgroundColor: '#e6006e' }, color: '#fff' }} 
-            onClick={() => handleSubmit(false)}
-            size="large"
-            disabled={loading}
-          >
-            GENERATE FLASHCARDS
-          </Button>
-          <Button 
-            variant="contained" 
-            sx={{ mt: 2, backgroundColor: '#0077ff', '&:hover': { backgroundColor: '#0066e6' }, color: '#fff' }} 
-            onClick={() => handleSubmit(true)}
-            size="large"
-            disabled={loading}
-          >
-            GENERATE FLASHCARDS AND TOPIC REVIEW
-          </Button>
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between' }}>
+            <Button 
+              variant="contained" 
+              sx={{ 
+                background: 'linear-gradient(to right, #ff0077, #ff00cc)', 
+                '&:hover': { background: 'linear-gradient(to right, #e6006e, #d600b2)' }, 
+                color: '#fff', 
+                width: '48%' 
+              }} 
+              onClick={() => handleSubmit(false)}
+              size="large"
+              disabled={loading}
+            >
+              GENERATE FLASHCARDS
+            </Button>
+            <Button 
+              variant="contained" 
+              sx={{ 
+                background: 'linear-gradient(to right, #333399, #ff00cc)', 
+                '&:hover': { background: 'linear-gradient(to right, #2e3192, #d600b2)' }, 
+                color: '#fff', 
+                width: '48%' 
+              }} 
+              onClick={() => handleSubmit(true)}
+              size="large"
+              disabled={loading}
+            >
+              GENERATE FLASHCARDS AND TOPIC REVIEW
+            </Button>
+          </Box>
           {loading && <LinearProgress sx={{ mt: 2 }} />}
         </Box>
 
@@ -278,8 +290,8 @@ export default function Generate() {
               variant="contained"
               sx={{ 
                 mt: 3, 
-                backgroundColor: '#ff0077', 
-                '&:hover': { backgroundColor: '#e6006e' }, 
+                background: 'linear-gradient(to right, #ff0077, #ff00cc)', 
+                '&:hover': { background: 'linear-gradient(to right, #e6006e, #d600b2)' }, 
                 color: '#fff',
                 display: 'flex', 
                 justifyContent: 'center', 
@@ -307,8 +319,8 @@ export default function Generate() {
               variant="contained"
               sx={{ 
                 mt: 3, 
-                backgroundColor: '#0077ff', 
-                '&:hover': { backgroundColor: '#0066e6' }, 
+                background: 'linear-gradient(to right, #333399, #ff00cc)', 
+                '&:hover': { background: 'linear-gradient(to right, #2e3192, #d600b2)' }, 
                 color: '#fff',
                 display: 'flex', 
                 justifyContent: 'center', 
@@ -368,3 +380,4 @@ export default function Generate() {
     </>
   );
 }
+
