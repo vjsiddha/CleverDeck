@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Container, Box, Typography, Grid, Card, CardContent, AppBar, Toolbar, List, ListItem, ListItemText, Button } from '@mui/material'; // Ensure Button is imported
+import { Container, Typography, Grid, Card, CardContent, AppBar, Toolbar, List, ListItem, ListItemText, Button } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { SignedIn, UserButton } from '@clerk/nextjs';
 import jsPDF from 'jspdf';
@@ -15,7 +15,6 @@ export default function Dashboard() {
   const [selectedReviewSheet, setSelectedReviewSheet] = useState(null);
 
   useEffect(() => {
-    // Fetch saved folders and flashcards from localStorage
     const savedFolders = JSON.parse(localStorage.getItem('folders')) || {};
     const savedReviewSheets = JSON.parse(localStorage.getItem('reviewSheets')) || {};
     setFolders(savedFolders);
@@ -42,54 +41,71 @@ export default function Dashboard() {
     }
   };
 
-  const handleGenerateTest = (testFolder) => {
-    const testFlashcards = folders[testFolder] || [];
-    const testReviewSheet = reviewSheets[testFolder] || "";
-
-    const doc = new jsPDF();
-    let startY = 20;  // Adjust based on your layout
-
-    // Add title to the PDF
-    doc.setFontSize(20);
-    doc.text(`Test for ${testFolder}`, 10, startY);
-    startY += 10;
-
-    // Debugging logs to check the type and content of testReviewSheet
-    console.log(typeof testReviewSheet);
-    console.log(testReviewSheet);
-
-    // Safely handle the review sheet content
-    if (typeof testReviewSheet !== "string" || testReviewSheet.trim() === "") {
-      doc.text("No review sheet available.", 10, startY + 20);
-    } else {
-      doc.setFontSize(14);
-      doc.text(
-        testReviewSheet.split("\n").map((line, i) => `${i + 1}. ${line}`).join("\n"),
-        10,
-        startY + 20
-      );
-      startY += testReviewSheet.split("\n").length * 10;
-    }
-
-    // Add flashcard questions to the PDF
-    if (testFlashcards.length > 0) {
-      doc.setFontSize(16);
-      doc.text("Flashcards:", 10, startY);
-      startY += 10;
-      testFlashcards.forEach((flashcard, index) => {
-        doc.setFontSize(14);
-        doc.text(`${index + 1}. ${flashcard.front}`, 10, startY);
-        startY += 10;
-        doc.text(`Answer: ${flashcard.back}`, 10, startY);
-        startY += 10;
+  const handleGenerateTest = async (testFolder) => {
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: `Flashcards: ${JSON.stringify(folders[testFolder])}, Review Sheet: ${reviewSheets[testFolder] || ""}`,
+          generateTest: true,
+        }),
       });
-    } else {
-      doc.setFontSize(14);
-      doc.text("No flashcards available.", 10, startY + 20);
-    }
 
-    // Save the generated PDF
-    doc.save(`${testFolder}_Test.pdf`);
+      if (!response.ok) {
+        throw new Error('Failed to generate test');
+      }
+
+      const { testQuestions } = await response.json();
+
+      if (testQuestions.length === 0) {
+        throw new Error('No test questions generated');
+      }
+
+      const doc = new jsPDF();
+      let startY = 20;
+      const lineHeight = 10;
+      const margin = 10;
+      const pageWidth = doc.internal.pageSize.width;
+      const textWidth = pageWidth - margin * 2;
+      const pageHeight = doc.internal.pageSize.height;
+
+      doc.setFontSize(20);
+      doc.text(`Test for ${testFolder}`, margin, startY);
+      startY += lineHeight + 10;
+
+      doc.setFontSize(16);
+      doc.text("Test Questions:", margin, startY);
+      startY += lineHeight;
+
+      testQuestions.forEach((q, index) => {
+        if (startY + 2 * lineHeight > pageHeight) {
+          doc.addPage();
+          startY = margin;
+        }
+        const questionLines = doc.splitTextToSize(`${index + 1}. ${q.question}`, textWidth);
+        questionLines.forEach(line => {
+          doc.text(line, margin, startY);
+          startY += lineHeight;
+        });
+
+        const answerLines = doc.splitTextToSize(`Answer: ${q.answer}`, textWidth);
+        answerLines.forEach(line => {
+          doc.text(line, margin, startY);
+          startY += lineHeight;
+        });
+
+        startY += 5;
+      });
+
+      doc.save(`${testFolder}_Test.pdf`);
+
+    } catch (error) {
+      console.error("Error generating test:", error.message);
+      alert(`Error generating test: ${error.message}`);
+    }
   };
 
   const getTotalFlashcards = () => {
@@ -143,8 +159,8 @@ export default function Dashboard() {
                 ) : (
                   <>
                     <List>
-                      {Object.keys(folders).map((folderName) => (
-                        <ListItem button key={folderName} onClick={() => handleFolderClick(folderName)} sx={{ borderBottom: '1px solid #444', paddingY: 1 }}>
+                      {Object.keys(folders).map((folderName, index) => (
+                        <ListItem button key={index} onClick={() => handleFolderClick(folderName)} sx={{ borderBottom: '1px solid #444', paddingY: 1 }}>
                           <ListItemText primary={folderName} />
                         </ListItem>
                       ))}
@@ -209,8 +225,8 @@ export default function Dashboard() {
                 ) : (
                   <>
                     <List>
-                      {Object.keys(reviewSheets).map((sheetName) => (
-                        <ListItem button key={sheetName} onClick={() => handleReviewSheetClick(sheetName)} sx={{ borderBottom: '1px solid #444', paddingY: 1 }}>
+                      {Object.keys(reviewSheets).map((sheetName, index) => (
+                        <ListItem button key={index} onClick={() => handleReviewSheetClick(sheetName)} sx={{ borderBottom: '1px solid #444', paddingY: 1 }}>
                           <ListItemText primary={sheetName} />
                         </ListItem>
                       ))}
@@ -231,59 +247,34 @@ export default function Dashboard() {
             </Card>
           </Grid>
 
-          {/* Creations */}
-          <Grid item xs={12} md={6}>
-            <Card sx={{ backgroundColor: '#2a2a2a', color: '#fff', borderRadius: 2, boxShadow: 4, height: '100%', padding: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>Creations</Typography>
-                <Typography variant="body1" sx={{ color: '#ff00cc' }}>
-                  - Flashcards: {getTotalFlashcards()}
-                </Typography>
-                <Typography variant="body1" sx={{ color: '#ff00cc', mt: 1 }}>
-                  - Review Sheets: {getTotalReviewSheets()}
-                </Typography>
-                <Typography 
-                  variant="h5" 
-                  gutterBottom 
-                  sx={{ 
-                    background: 'linear-gradient(to right, #ff00cc, #333399)', 
-                    WebkitBackgroundClip: 'text', 
-                    WebkitTextFillColor: 'transparent' 
-                  }}
-                >
-                  Generated Flashcards
-                </Typography>
-                <Typography variant="h4" sx={{ color: '#ff00cc' }}>{flashcards.length}/100</Typography>
-                <Typography variant="body2">Not bad</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
           {/* Test Yourself */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ backgroundColor: '#1a1a1a', color: '#fff', borderRadius: 2, boxShadow: 3 }}>
+            <Card sx={{ backgroundColor: '#2a2a2a', color: '#fff', borderRadius: 2, boxShadow: 4, padding: 3 }}>
               <CardContent>
                 <Typography 
                   variant="h5" 
                   gutterBottom 
                   sx={{ 
+                    borderBottom: '1px solid #ff0077', 
+                    paddingBottom: 1, 
+                    marginBottom: 2, 
                     background: 'linear-gradient(to right, #ff00cc, #333399)', 
                     WebkitBackgroundClip: 'text', 
                     WebkitTextFillColor: 'transparent' 
                   }}
                 >
-                  Completed Flashcards
+                  Test Yourself
                 </Typography>
-                <Typography variant="h4" sx={{ color: '#ff00cc' }}>0</Typography>
-                <Typography variant="body2">You need to do better!</Typography>
-                <Typography variant="h6" gutterBottom>Test Yourself</Typography>
+                <Typography variant="body2" sx={{ color: 'gray', mb: 2 }}>
+                  Please select a folder to test yourself on. The test will be generated in PDF format.
+                </Typography>
                 {Object.keys(folders).length === 0 && Object.keys(reviewSheets).length === 0 ? (
                   <Typography variant="body2">There are no flashcards or review sheets available for testing.</Typography>
                 ) : (
                   <>
                     <List>
-                      {Object.keys(folders).concat(Object.keys(reviewSheets)).map((folderName) => (
-                        <ListItem button key={folderName} onClick={() => handleGenerateTest(folderName)}>
+                      {[...new Set([...Object.keys(folders), ...Object.keys(reviewSheets)])].map((folderName, index) => (
+                        <ListItem button key={index} onClick={() => handleGenerateTest(folderName)} sx={{ borderBottom: '1px solid #444', paddingY: 1 }}>
                           <ListItemText primary={`Test: ${folderName}`} />
                         </ListItem>
                       ))}
@@ -292,6 +283,34 @@ export default function Dashboard() {
                 )}
               </CardContent>
             </Card>
+          </Grid>
+
+          {/* Creations */}
+          <Grid item xs={12} md={6}>
+          <Card sx={{ backgroundColor: '#2a2a2a', color: '#fff', borderRadius: 2, boxShadow: 4, padding: 3 }}>
+  <CardContent>
+    <Typography 
+      variant="h5" 
+      gutterBottom 
+      sx={{ 
+        borderBottom: '1px solid #ff0077', 
+        paddingBottom: 1, 
+        marginBottom: 2, 
+        background: 'linear-gradient(to right, #ff00cc, #333399)', 
+        WebkitBackgroundClip: 'text', 
+        WebkitTextFillColor: 'transparent' 
+      }}
+    >
+      Creations
+    </Typography>
+    <Typography variant="body1" sx={{ color: '#fff' }}>
+      - Flashcards: 74
+    </Typography>
+    <Typography variant="body1" sx={{ color: '#fff', mt: 1 }}>
+      - Review Sheets: 5
+    </Typography>
+  </CardContent>
+</Card>
           </Grid>
         </Grid>
       </Container>

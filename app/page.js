@@ -38,7 +38,7 @@ export default function Home() {
       <AppBar position="fixed" sx={{ background: 'black' }}>
         <Toolbar>
           <Typography variant="h6" style={{ flexGrow: 1 }}>
-            Flashcard SaaS
+            CleverDeck
           </Typography>
           <SignedOut>
             <Button color="inherit" href="/login">Login</Button>
@@ -59,7 +59,7 @@ export default function Home() {
       <Container maxWidth="md" sx={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Box sx={{ textAlign: 'center', my: 4 }}>
           <Typography variant="h2" component="h1" gutterBottom sx={{ background: 'linear-gradient(to right, #ff00cc, #333399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Welcome to Flashcard SaaS
+            Welcome to CleverDeck
           </Typography>
           <Typography variant="h5" component="h2" gutterBottom>
             The easiest way to create flashcards from your text.

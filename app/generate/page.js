@@ -25,7 +25,7 @@ export default function Generate() {
 
   useEffect(() => {
     const storedFolders = JSON.parse(localStorage.getItem('folders')) || {};
-    const storedReviewFolders = JSON.parse(localStorage.getItem('reviewFolders')) || {};
+    const storedReviewFolders = JSON.parse(localStorage.getItem('reviewSheets')) || {};
     setFolders(storedFolders);
     setReviewFolders(storedReviewFolders);
   }, []);
@@ -82,7 +82,7 @@ export default function Generate() {
 
     const folder = folderName || selectedFolder;
     let updatedFolders = JSON.parse(localStorage.getItem('folders')) || {};
-    let updatedReviewFolders = JSON.parse(localStorage.getItem('reviewFolders')) || {};
+    let updatedReviewFolders = JSON.parse(localStorage.getItem('reviewSheets')) || {};
 
     // Save flashcards
     if (flashcards.length > 0) {
@@ -100,7 +100,7 @@ export default function Generate() {
         updatedReviewFolders[folder] = [];
       }
       updatedReviewFolders[folder] = [...updatedReviewFolders[folder], reviewSheet];
-      localStorage.setItem('reviewFolders', JSON.stringify(updatedReviewFolders));
+      localStorage.setItem('reviewSheets', JSON.stringify(updatedReviewFolders));
       setReviewFolders(updatedReviewFolders);
     }
 
@@ -169,40 +169,6 @@ export default function Generate() {
               },
             }}
           />
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="body1" sx={{ color: 'gray', mb: 1 }}>
-              Number of Flashcards:
-            </Typography>
-            <Select
-              value={flashcardCount}
-              onChange={(e) => setFlashcardCount(e.target.value)}
-              sx={{ width: '100px' }}
-            >
-              {Array.from({ length: 25 }, (_, i) => i + 1).map((number) => (
-                <MenuItem key={number} value={number}>
-                  {number}
-                </MenuItem>
-              ))}
-            </Select>
-          </Box>
-          <Button 
-            variant="contained" 
-            sx={{ mt: 3, backgroundColor: '#ff0077', '&:hover': { backgroundColor: '#e6006e' }, color: '#fff' }} 
-            onClick={() => handleSubmit(false)}
-            size="large"
-            disabled={loading}
-          >
-            GENERATE FLASHCARDS
-          </Button>
-          <Button 
-            variant="contained" 
-            sx={{ mt: 2, backgroundColor: '#0077ff', '&:hover': { backgroundColor: '#0066e6' }, color: '#fff' }} 
-            onClick={() => handleSubmit(true)}
-            size="large"
-            disabled={loading}
-          >
-            GENERATE FLASHCARDS AND TOPIC REVIEW
-          </Button>
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between' }}>
             <Button 
               variant="contained" 
@@ -261,9 +227,7 @@ export default function Generate() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       minHeight: '150px',
-                      boxSizing: 'border-box',
-                      wordWrap: 'break-word', // Ensure text does not get cut off
-                      whiteSpace: 'pre-wrap', // Ensure new lines are preserved
+                      boxSizing: 'border-box' 
                     }} 
                     onClick={() => handleCardClick(index)}
                   >
@@ -347,7 +311,7 @@ export default function Generate() {
         {reviewSheet && (
           <Box sx={{ mt: 4 }}>
             <Typography variant="h4" component="h2" gutterBottom>
-              Practice Sheet
+              Review Sheet
             </Typography>
             <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
               {reviewSheet}
@@ -417,4 +381,3 @@ export default function Generate() {
     </>
   );
 }
-
