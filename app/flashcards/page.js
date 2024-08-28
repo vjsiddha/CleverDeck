@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from 'react';
 import { Container, Grid, Card, CardContent, Typography, CardActionArea, Box } from '@mui/material';
 import { useUser } from '@clerk/nextjs';

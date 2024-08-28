@@ -7,7 +7,7 @@ export default function Login() {
     <Container maxWidth="xs" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
       <Paper elevation={3} sx={{ p: 4, background: 'linear-gradient(to bottom, #000000, #333399)', color: 'white' }}>
         <Typography variant="h4" gutterBottom sx={{ textAlign: 'center', fontWeight: 'bold', background: 'linear-gradient(to right, #ff00cc, #333399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Sign In to Flashcard SaaS
+          Sign In to CleverDeck
         </Typography>
         <Divider sx={{ my: 3, backgroundColor: 'white' }} />
         <SignIn 
