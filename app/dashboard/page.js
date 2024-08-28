@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Box, Typography, Grid, Card, CardContent, Button, AppBar, Toolbar, List, ListItem, ListItemText } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { SignedIn, UserButton } from '@clerk/nextjs';
+import jsPDF from 'jspdf';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [selectedReviewSheet, setSelectedReviewSheet] = useState(null);
 
   useEffect(() => {
+    // Fetch saved folders and flashcards from localStorage
     const savedFolders = JSON.parse(localStorage.getItem('folders')) || {};
     const savedReviewSheets = JSON.parse(localStorage.getItem('reviewSheets')) || {};
     setFolders(savedFolders);
@@ -21,14 +23,81 @@ export default function Dashboard() {
   }, []);
 
   const handleFolderClick = (folderName) => {
-    setSelectedFolder(folderName);
-    setFlashcards(folders[folderName]);
-    setSelectedReviewSheet(null);
+    if (selectedFolder === folderName) {
+      setSelectedFolder(null);
+      setFlashcards([]);
+    } else {
+      setSelectedFolder(folderName);
+      setFlashcards(folders[folderName]);
+      setSelectedReviewSheet(null);
+    }
   };
 
   const handleReviewSheetClick = (sheetName) => {
-    setSelectedReviewSheet(sheetName);
-    setSelectedFolder(null);
+    if (selectedReviewSheet === sheetName) {
+      setSelectedReviewSheet(null);
+    } else {
+      setSelectedReviewSheet(sheetName);
+      setSelectedFolder(null);
+    }
+  };
+
+  const handleGenerateTest = (testFolder) => {
+    const testFlashcards = folders[testFolder] || [];
+    const testReviewSheet = reviewSheets[testFolder] || "";
+
+    const doc = new jsPDF();
+    let startY = 20;  // Adjust based on your layout
+
+    // Add title to the PDF
+    doc.setFontSize(20);
+    doc.text(`Test for ${testFolder}`, 10, startY);
+    startY += 10;
+
+    // Debugging logs to check the type and content of testReviewSheet
+    console.log(typeof testReviewSheet);
+    console.log(testReviewSheet);
+
+    // Safely handle the review sheet content
+    if (typeof testReviewSheet !== "string" || testReviewSheet.trim() === "") {
+      doc.text("No review sheet available.", 10, startY + 20);
+    } else {
+      doc.setFontSize(14);
+      doc.text(
+        testReviewSheet.split("\n").map((line, i) => `${i + 1}. ${line}`).join("\n"),
+        10,
+        startY + 20
+      );
+      startY += testReviewSheet.split("\n").length * 10;
+    }
+
+    // Add flashcard questions to the PDF
+    if (testFlashcards.length > 0) {
+      doc.setFontSize(16);
+      doc.text("Flashcards:", 10, startY);
+      startY += 10;
+      testFlashcards.forEach((flashcard, index) => {
+        doc.setFontSize(14);
+        doc.text(`${index + 1}. ${flashcard.front}`, 10, startY);
+        startY += 10;
+        doc.text(`Answer: ${flashcard.back}`, 10, startY);
+        startY += 10;
+      });
+    } else {
+      doc.setFontSize(14);
+      doc.text("No flashcards available.", 10, startY + 20);
+    }
+
+    // Save the generated PDF
+    doc.save(`${testFolder}_Test.pdf`);
+  };
+
+  const getTotalFlashcards = () => {
+    return Object.values(folders).reduce((acc, folder) => acc + folder.length, 0);
+  };
+
+  const getTotalReviewSheets = () => {
+    return Object.values(reviewSheets).reduce((acc, folder) => acc + folder.length, 0);
   };
 
   return (
@@ -140,24 +209,39 @@ export default function Dashboard() {
             </Card>
           </Grid>
 
-          {/* Generated Flashcards */}
+          {/* Creations */}
           <Grid item xs={12} md={6}>
             <Card sx={{ backgroundColor: '#1a1a1a', color: '#fff', borderRadius: 2, boxShadow: 3, height: '100%' }}>
               <CardContent>
-                <Typography variant="h6" gutterBottom>Generated Flashcards</Typography>
-                <Typography variant="h4" sx={{ color: '#ff00cc' }}>{flashcards.length}/100</Typography>
-                <Typography variant="body2">Not bad</Typography>
+                <Typography variant="h6" gutterBottom>Creations</Typography>
+                <Typography variant="body1" sx={{ color: '#ff00cc' }}>
+                  - Flashcards: {getTotalFlashcards()}
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#ff00cc', mt: 1 }}>
+                  - Review Sheets: {getTotalReviewSheets()}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
 
-          {/* Completed Flashcards */}
+          {/* Test Yourself */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ backgroundColor: '#1a1a1a', color: '#fff', borderRadius: 2, boxShadow: 3, height: '100%' }}>
+            <Card sx={{ backgroundColor: '#1a1a1a', color: '#fff', borderRadius: 2, boxShadow: 3 }}>
               <CardContent>
-                <Typography variant="h6" gutterBottom>Completed Flashcards</Typography>
-                <Typography variant="h4" sx={{ color: '#ff00cc' }}>0</Typography>
-                <Typography variant="body2">You need to do better!</Typography>
+                <Typography variant="h6" gutterBottom>Test Yourself</Typography>
+                {Object.keys(folders).length === 0 && Object.keys(reviewSheets).length === 0 ? (
+                  <Typography variant="body2">There are no flashcards or review sheets available for testing.</Typography>
+                ) : (
+                  <>
+                    <List>
+                      {Object.keys(folders).concat(Object.keys(reviewSheets)).map((folderName) => (
+                        <ListItem button key={folderName} onClick={() => handleGenerateTest(folderName)}>
+                          <ListItemText primary={`Test: ${folderName}`} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </>
+                )}
               </CardContent>
             </Card>
           </Grid>

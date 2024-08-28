@@ -5,20 +5,20 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, // Use the new OpenAI API key
 });
 
-const systemPrompt = `
-You are an AI that generates 10 flashcards in JSON format.
+const systemPrompt = (count) => `
+You are an AI that generates ${count} flashcards in JSON format.
 Each flashcard should have one question on the front and a brief answer on the back.
 Return only the JSON object: {"flashcards": [{"front": "Question?", "back": "Answer"}]}.
 `;
 
 const reviewPrompt = `
 You are an AI that generates a very thorough topic review and practice question sheet in plain text format.
-First, provide a detailed topic review. Then, include multiple practical questions each of varying difficulty such that they test the users application and knowledge of the topic.
+First, provide a detailed topic review. Then, include multiple practical questions each of varying difficulty such that they test the user's application and knowledge of the topic.
 Return the content as plain text with sections clearly marked as 'Topic Review:' and 'Practice Questions:'.
 `;
 
 export async function POST(req) {
-  const { text, generateReviewSheet } = await req.json();
+  const { text, generateReviewSheet, flashcardCount = 10 } = await req.json();
 
   let flashcards = [];
   let reviewSheet = '';
@@ -50,11 +50,11 @@ export async function POST(req) {
       }
     }
 
-    // Generate flashcards
+    // Generate flashcards based on the flashcardCount
     const flashcardCompletion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo', // Use GPT-3.5 model
       messages: [
-        { role: 'system', content: systemPrompt },
+        { role: 'system', content: systemPrompt(flashcardCount) },
         { role: 'user', content: text },
       ],
     });

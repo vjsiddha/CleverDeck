@@ -19,12 +19,13 @@ export default function Generate() {
   const [reviewFolders, setReviewFolders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [flashcardCount, setFlashcardCount] = useState(10); // Default value
 
   const router = useRouter();
 
   useEffect(() => {
     const storedFolders = JSON.parse(localStorage.getItem('folders')) || {};
-    const storedReviewFolders = JSON.parse(localStorage.getItem('reviewSheets')) || {};
+    const storedReviewFolders = JSON.parse(localStorage.getItem('reviewFolders')) || {};
     setFolders(storedFolders);
     setReviewFolders(storedReviewFolders);
   }, []);
@@ -39,7 +40,7 @@ export default function Generate() {
       setLoading(true);
       const response = await fetch('/api/generate', {
         method: 'POST',
-        body: JSON.stringify({ text, generateReviewSheet }),
+        body: JSON.stringify({ text, generateReviewSheet, flashcardCount }), // Include flashcard count
         headers: {
           'Content-Type': 'application/json',
         },
@@ -81,7 +82,7 @@ export default function Generate() {
 
     const folder = folderName || selectedFolder;
     let updatedFolders = JSON.parse(localStorage.getItem('folders')) || {};
-    let updatedReviewFolders = JSON.parse(localStorage.getItem('reviewSheets')) || {};
+    let updatedReviewFolders = JSON.parse(localStorage.getItem('reviewFolders')) || {};
 
     // Save flashcards
     if (flashcards.length > 0) {
@@ -99,7 +100,7 @@ export default function Generate() {
         updatedReviewFolders[folder] = [];
       }
       updatedReviewFolders[folder] = [...updatedReviewFolders[folder], reviewSheet];
-      localStorage.setItem('reviewSheets', JSON.stringify(updatedReviewFolders));
+      localStorage.setItem('reviewFolders', JSON.stringify(updatedReviewFolders));
       setReviewFolders(updatedReviewFolders);
     }
 
@@ -168,6 +169,22 @@ export default function Generate() {
               },
             }}
           />
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body1" sx={{ color: 'gray', mb: 1 }}>
+              Number of Flashcards:
+            </Typography>
+            <Select
+              value={flashcardCount}
+              onChange={(e) => setFlashcardCount(e.target.value)}
+              sx={{ width: '100px' }}
+            >
+              {Array.from({ length: 25 }, (_, i) => i + 1).map((number) => (
+                <MenuItem key={number} value={number}>
+                  {number}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
           <Button 
             variant="contained" 
             sx={{ mt: 3, backgroundColor: '#ff0077', '&:hover': { backgroundColor: '#e6006e' }, color: '#fff' }} 
@@ -214,7 +231,9 @@ export default function Generate() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       minHeight: '150px',
-                      boxSizing: 'border-box' 
+                      boxSizing: 'border-box',
+                      wordWrap: 'break-word', // Ensure text does not get cut off
+                      whiteSpace: 'pre-wrap', // Ensure new lines are preserved
                     }} 
                     onClick={() => handleCardClick(index)}
                   >
