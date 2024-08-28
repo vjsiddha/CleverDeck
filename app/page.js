@@ -25,11 +25,12 @@ export default function Home() {
   };
 
   const handleJoinWaitlist = () => {
-    router.push('/waitlist'); // Redirect to a waitlist page or other appropriate action
+    // Redirect to the Google Form
+    window.location.href = "https://forms.gle/XvYCJ4jhQAVeQHic8";
   };
 
   const handleDashboardRedirect = () => {
-    router.push('/dashboard'); // Redirect to the user's dashboard
+    router.push('/dashboard');
   };
 
   return (
@@ -53,7 +54,6 @@ export default function Home() {
         </Toolbar>
       </AppBar>
 
-      {/* Adding padding to prevent content from being hidden behind the AppBar */}
       <Toolbar />
 
       <Container maxWidth="md" sx={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -70,7 +70,6 @@ export default function Home() {
         </Box>
       </Container>
 
-      {/* Features Section */}
       <Container maxWidth="md" sx={{ my: 8 }} id="features">
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Typography variant="h2" component="h2" gutterBottom sx={{ background: 'linear-gradient(to right, #ff00cc, #333399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -114,7 +113,6 @@ export default function Home() {
         </Box>
       </Container>
 
-      {/* Pricing Section */}
       <Container maxWidth="md" sx={{ my: 8 }} id="pricing">
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Typography variant="h2" component="h2" gutterBottom sx={{ background: 'linear-gradient(to right, #ff00cc, #333399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
