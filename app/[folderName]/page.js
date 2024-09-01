@@ -37,7 +37,7 @@ export default function FolderPage() {
       <AppBar position="fixed" sx={{ background: 'black' }}>
         <Toolbar>
           <Typography variant="h6" style={{ flexGrow: 1, cursor: 'pointer' }} onClick={() => router.push('/dashboard')}>
-            Flashcard SaaS
+            CleverDeck
           </Typography>
           <Button color="inherit" onClick={() => router.push('/dashboard')} sx={{ mr: 2 }}>
             Dashboard
