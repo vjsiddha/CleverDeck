@@ -3,6 +3,7 @@
 import React from 'react';
 import { Container, Box, Typography, Paper, Divider } from '@mui/material';
 import { SignUp } from '@clerk/nextjs';
+import { db } from '../../../firebase'; // Ensure this matches the export in firebase.js
 
 export default function Signup() {
   return (

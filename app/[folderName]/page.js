@@ -1,4 +1,5 @@
 'use client';
+import { db } from '../../firebase'; // Ensure this matches the export in firebase.js
 
 import React, { useState, useEffect } from 'react';
 import { Container, Box, Typography, Grid, Card, CardContent, AppBar, Toolbar, Button } from '@mui/material';

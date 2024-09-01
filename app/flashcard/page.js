@@ -1,9 +1,11 @@
+"use client";
+
 import { useEffect, useState } from 'react';
 import { Container, Grid, Card, CardContent, Typography, CardActionArea, Box } from '@mui/material';
 import { useUser } from '@clerk/nextjs';
 import { doc, collection, getDocs } from 'firebase/firestore';
 import { useSearchParams } from 'next/navigation';
-import db from '../../firebase';
+import { db } from '../../firebase'; // Corrected import for db
 
 export default function FlashcardPage() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -42,7 +44,13 @@ export default function FlashcardPage() {
             <Card>
               <CardActionArea onClick={() => handleCardClick(flashcard.id)}>
                 <CardContent>
-                  <Box sx={{ transformStyle: 'preserve-3d', transition: 'transform 0.6s', transform: flipped[flashcard.id] ? 'rotateY(180deg)' : 'none' }}>
+                  <Box
+                    sx={{
+                      transformStyle: 'preserve-3d',
+                      transition: 'transform 0.6s',
+                      transform: flipped[flashcard.id] ? 'rotateY(180deg)' : 'none',
+                    }}
+                  >
                     <div>
                       <Typography variant="h5" component="div">
                         {flashcard.front}

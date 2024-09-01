@@ -5,6 +5,7 @@ import { Container, Typography, Grid, Card, CardContent, AppBar, Toolbar, List, 
 import { useRouter } from 'next/navigation';
 import { SignedIn, UserButton } from '@clerk/nextjs';
 import jsPDF from 'jspdf';
+import { db } from '../../firebase'; // Ensure this matches the export in firebase.js
 
 export default function Dashboard() {
   const router = useRouter();
@@ -168,7 +169,7 @@ export default function Dashboard() {
                     {selectedFolder && (
                       <>
                         <Typography variant="h6" sx={{ mt: 4, mb: 2, color: '#ff0077' }}>
-                          Flashcards in "{selectedFolder}"
+                          Flashcards in &quot;{selectedFolder}&quot;
                         </Typography>
                         <Grid container spacing={2}>
                           {flashcards.map((flashcard, index) => (
@@ -234,7 +235,7 @@ export default function Dashboard() {
                     {selectedReviewSheet && (
                       <>
                         <Typography variant="h6" sx={{ mt: 4, mb: 2, color: '#ff0077' }}>
-                          Review Sheet: "{selectedReviewSheet}"
+                          Review Sheet: &quot;{selectedReviewSheet}&quot;
                         </Typography>
                         <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
                           {reviewSheets[selectedReviewSheet]}
@@ -287,30 +288,30 @@ export default function Dashboard() {
 
           {/* Creations */}
           <Grid item xs={12} md={6}>
-          <Card sx={{ backgroundColor: '#2a2a2a', color: '#fff', borderRadius: 2, boxShadow: 4, padding: 3 }}>
-  <CardContent>
-    <Typography 
-      variant="h5" 
-      gutterBottom 
-      sx={{ 
-        borderBottom: '1px solid #ff0077', 
-        paddingBottom: 1, 
-        marginBottom: 2, 
-        background: 'linear-gradient(to right, #ff00cc, #333399)', 
-        WebkitBackgroundClip: 'text', 
-        WebkitTextFillColor: 'transparent' 
-      }}
-    >
-      Creations
-    </Typography>
-    <Typography variant="body1" sx={{ color: '#fff' }}>
-      - Flashcards: 74
-    </Typography>
-    <Typography variant="body1" sx={{ color: '#fff', mt: 1 }}>
-      - Review Sheets: 5
-    </Typography>
-  </CardContent>
-</Card>
+            <Card sx={{ backgroundColor: '#2a2a2a', color: '#fff', borderRadius: 2, boxShadow: 4, padding: 3 }}>
+              <CardContent>
+                <Typography 
+                  variant="h5" 
+                  gutterBottom 
+                  sx={{ 
+                    borderBottom: '1px solid #ff0077', 
+                    paddingBottom: 1, 
+                    marginBottom: 2, 
+                    background: 'linear-gradient(to right, #ff00cc, #333399)', 
+                    WebkitBackgroundClip: 'text', 
+                    WebkitTextFillColor: 'transparent' 
+                  }}
+                >
+                  Creations
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#fff' }}>
+                  - Flashcards: 74
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#fff', mt: 1 }}>
+                  - Review Sheets: 5
+                </Typography>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Container>

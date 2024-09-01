@@ -1,7 +1,10 @@
+"use client";
+
 import { useEffect, useState } from 'react';
 import { Container, CircularProgress, Typography, Box } from '@mui/material';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
+import { db } from '../../firebase'; // Correct import based on file structure
 
 const ResultPage = () => {
   const router = useRouter();

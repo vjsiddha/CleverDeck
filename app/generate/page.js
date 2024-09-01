@@ -6,6 +6,7 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import { useRouter } from 'next/navigation';
 import { SignedIn, UserButton } from '@clerk/nextjs';
+import { db } from '../../firebase'; // Ensure this matches the export in firebase.js
 
 export default function Generate() {
   const [text, setText] = useState('');
@@ -144,7 +145,7 @@ export default function Generate() {
             variant="body1" 
             sx={{ color: 'gray', mb: 4 }}
           >
-            Paste your text below and click "Generate Flashcards" to create your personalized flashcards.
+            Paste your text below and click &quot;Generate Flashcards&quot; to create your personalized flashcards.
           </Typography>
           <TextField
             value={text}

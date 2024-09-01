@@ -7,6 +7,7 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import UpdateIcon from '@mui/icons-material/Update';
 import { useRouter } from 'next/navigation';
+import { db } from '../firebase'; // Adjust relative path based on the location of the component
 
 export default function Home() {
   const router = useRouter();
