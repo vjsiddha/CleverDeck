@@ -14,7 +14,11 @@ export default function Home() {
   const { isSignedIn } = useUser();
 
   const handleStartLearning = () => {
-    router.push('/generate');
+    if (isSignedIn) {
+      router.push('/generate');
+    } else {
+      router.push('/signup');
+    }
   };
 
   const handleBasicPlan = () => {
