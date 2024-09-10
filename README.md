@@ -1,4 +1,4 @@
-# Flashcard SaaS
+# CleverDeck
 
 CleverDeck is a comprehensive web application built with Next.js, designed to help users create, manage, and review flashcards effectively for studying and memory retention.
 
